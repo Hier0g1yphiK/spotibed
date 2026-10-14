@@ -58,15 +58,3 @@ export function toEmbedUrl(link, customUrl = '') {
   }
   return link.url;
 }
-
-/**
- * Builds the full message body: the note followed by one embed URL per line.
- *
- * @param {Array<{ type: string, id: string, url: string }>} links
- * @param {{ note: string, customUrl: string }} settings
- * @returns {string}
- */
-export function buildEmbedMessage(links, { note, customUrl }) {
-  const urls = links.slice(0, MAX_LINKS_PER_MESSAGE).map((link) => toEmbedUrl(link, customUrl));
-  return `${note}${urls.join('\n')}`.slice(0, 2000);
-}

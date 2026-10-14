@@ -1,14 +1,15 @@
 /**
  * /spotifyembed command handler
- * Converts a Spotify link into a clean link Discord shows as a player.
+ * Posts a Spotify card with a playable 30-second preview for a link on demand.
  */
 
 import { MessageFlags } from 'discord.js';
-import { extractSpotifyLinks, toEmbedUrl } from '../spotify/links.js';
+import { extractSpotifyLinks } from '../spotify/links.js';
+import { buildSpotifyReply } from '../spotify/reply.js';
 
 export const command = {
   name: 'spotifyembed',
-  description: 'Post a playable Spotify player preview for a link',
+  description: 'Post a Spotify card with a playable preview for a link',
   options: [
     {
       name: 'link',
@@ -32,7 +33,7 @@ export const command = {
  * @param {import('discord.js').ChatInputCommandInteraction} interaction
  * @param {object} deps
  */
-export async function execute(interaction, { settingsStore, webhookSender }) {
+export async function execute(interaction, { settingsStore, webhookSender, metadataService }) {
   const input = interaction.options.getString('link');
   const asMyself = interaction.options.getBoolean('as_myself') ?? false;
 
@@ -45,18 +46,22 @@ export async function execute(interaction, { settingsStore, webhookSender }) {
     return;
   }
 
-  const { customUrl } = settingsStore.get(interaction.guildId);
-  const url = toEmbedUrl(link, customUrl);
-
   // Webhooks only work in guild channels the bot can see
-  if (!asMyself || !interaction.inCachedGuild() || !interaction.channel) {
-    await interaction.reply({ content: url });
+  const useWebhook = asMyself && interaction.inCachedGuild() && interaction.channel;
+
+  // Fetching metadata and the preview can take a moment, so defer first
+  await interaction.deferReply(useWebhook ? { flags: MessageFlags.Ephemeral } : {});
+
+  const { customUrl } = settingsStore.get(interaction.guildId);
+  // The note is for auto-replies; on-demand posts don't need it
+  const reply = await buildSpotifyReply([link], { note: '', customUrl }, metadataService);
+
+  if (!useWebhook) {
+    await interaction.editReply(reply);
     return;
   }
 
-  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-  const viaWebhook = await webhookSender.sendAsOrFallback(interaction.channel, url, {
+  const viaWebhook = await webhookSender.sendAsOrFallback(interaction.channel, reply, {
     member: interaction.member,
     user: interaction.user,
   });

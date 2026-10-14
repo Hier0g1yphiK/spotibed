@@ -1,11 +1,12 @@
 /**
  * Entry point: load environment, wire all layers together, and start the bot.
  *
- * Wiring order: config → store → commands → registry → bot
+ * Wiring order: config → store → services → commands → registry → bot
  */
 
 import { config } from './utils/config.js';
 import { initDatabase, SettingsStore } from './store/settingsStore.js';
+import { SpotifyMetadataService } from './spotify/metadata.js';
 import { loadCommands, registerCommands, buildHandlerMap } from './registry.js';
 import { createBot } from './bot.js';
 import { logger } from './utils/logger.js';
@@ -19,7 +20,10 @@ const __dirname = dirname(__filename);
 const db = initDatabase();
 const settingsStore = new SettingsStore(db);
 
-const services = { settingsStore };
+// --- Service layer ---
+const metadataService = new SpotifyMetadataService();
+
+const services = { settingsStore, metadataService };
 
 // --- Command discovery and registration ---
 const commandsDir = join(__dirname, 'commands');

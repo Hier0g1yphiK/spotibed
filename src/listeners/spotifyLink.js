@@ -1,11 +1,12 @@
 /**
  * Spotify Link Listener
  * When enabled for a guild, detects Spotify links in messages and reposts them
- * as clean links Discord shows as its Spotify player (as the original author, via webhook). Optionally
- * deletes the original message afterwards.
+ * as Spotify cards with a playable 30-second preview (as the original author,
+ * via webhook). Optionally deletes the original message afterwards.
  */
 
-import { extractSpotifyLinks, buildEmbedMessage } from '../spotify/links.js';
+import { extractSpotifyLinks } from '../spotify/links.js';
+import { buildSpotifyReply } from '../spotify/reply.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -15,8 +16,9 @@ import { logger } from '../utils/logger.js';
  * @param {object} options
  * @param {import('../store/settingsStore.js').SettingsStore} options.settingsStore
  * @param {import('../services/webhookSender.js').WebhookSender} options.webhookSender
+ * @param {import('../spotify/metadata.js').SpotifyMetadataService} options.metadataService
  */
-export function registerSpotifyLinkListener(client, { settingsStore, webhookSender }) {
+export function registerSpotifyLinkListener(client, { settingsStore, webhookSender, metadataService }) {
   client.on('messageCreate', async (message) => {
     // Ignore bots and webhooks (including our own reposts) to prevent loops
     if (message.author.bot || message.webhookId) return;
@@ -28,11 +30,10 @@ export function registerSpotifyLinkListener(client, { settingsStore, webhookSend
     const links = extractSpotifyLinks(message.content);
     if (links.length === 0) return;
 
-    const content = buildEmbedMessage(links, settings);
-
     let sentViaWebhook;
     try {
-      sentViaWebhook = await webhookSender.sendAsOrFallback(message.channel, content, {
+      const reply = await buildSpotifyReply(links, settings, metadataService);
+      sentViaWebhook = await webhookSender.sendAsOrFallback(message.channel, reply, {
         member: message.member,
         user: message.author,
       });

@@ -1,19 +1,19 @@
 # Spotibed
 
-A standalone Discord bot that reposts Spotify links as clean links that Discord turns into its Spotify player, so people (especially on mobile) can play a preview right inside Discord without a Spotify account.
+A standalone Discord bot that turns Spotify links into a Spotify card with a playable 30-second preview, so people (especially on mobile) can listen to a sample right inside Discord without a Spotify account.
 
 A standalone port of the [coffee-cogs `spotifyembed`](https://github.com/coffeebank/coffee-cogs/tree/master/spotifyembed) Red-DiscordBot cog. It doesn't need Red.
 
 ## Features
 
-- **Auto-embed Spotify links.** When enabled for a server, any `open.spotify.com` link (track, album, playlist, artist, episode, show, including `/intl-xx/` links) is reposted as a clean link (no `?si=` tracking or locale) that Discord shows as a playable Spotify card, and the original message's preview is hidden so the player doesn't show twice. The repost uses the original author's name and avatar via a webhook.
-- `/spotifyembed <link> [as_myself]`: convert a single link on demand. With `as_myself: true`, the bot posts it under your name.
+- **Auto-embed Spotify links.** When enabled for a server, any `open.spotify.com` link (track, album, playlist, artist, episode, show, including `/intl-xx/` and `?si=` links) is reposted as a Spotify card with the title, artist and artwork. Tracks also get their 30-second preview attached as an MP3, which Discord plays inline. The repost uses the original author's name and avatar via a webhook, and the original message's link preview is hidden so it doesn't show twice. If Spotify's details can't be fetched, the bot posts the clean link instead.
+- `/spotifyembed <link> [as_myself]`: post the card and preview for a single link on demand. With `as_myself: true`, the bot posts it under your name.
 - `/spotibed ...`: server settings (needs **Manage Server**):
   - `settings`: show the current settings
   - `enable` / `disable`: turn auto-embedding on or off (off by default)
   - `deleteoriginal <true|false>`: delete the original message after reposting
   - `note <text>`: text shown before the links. Default `>>> Play sample:`. Use `reset` for the default, `none` for no text, and `\n` for a new line.
-  - `customurl <url>`: post `<url><spotify link>` instead of the Spotify link, e.g. `https://playsoju.netlify.app/?s=`. Use `reset` for the default.
+  - `customurl <url>`: post `<url><spotify link>` instead of the card and preview, e.g. `https://playsoju.netlify.app/?s=`. Use `reset` for the default.
 
 Settings are stored per server in SQLite at `data/spotibed.db`. The file is created automatically and is gitignored.
 
@@ -30,6 +30,7 @@ When inviting the bot (OAuth2 → URL Generator, scopes `bot` + `applications.co
 | Permission | Why |
 |------------|-----|
 | View Channels, Send Messages | Reading links and replying |
+| Embed Links, Attach Files | Showing the Spotify card and preview MP3 |
 | Manage Webhooks | Posting as the original author (falls back to a normal bot message without it) |
 | Manage Messages | Hiding the original message's preview, and `deleteoriginal` |
 
@@ -84,7 +85,9 @@ src/
 ├── services/
 │   └── webhookSender.js   # Post as a user via a cached bot-owned webhook
 ├── spotify/
-│   └── links.js           # Link parsing and embed URL building
+│   ├── links.js           # Link parsing and canonical URLs
+│   ├── metadata.js        # Title/artwork/preview MP3 from Spotify (cached)
+│   └── reply.js           # Builds the card + preview attachment message
 ├── store/
 │   └── settingsStore.js   # SQLite-backed per-guild settings
 └── utils/                 # Config, logger

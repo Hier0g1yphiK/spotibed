@@ -1,7 +1,7 @@
 {
   "name": "spotibed",
   "version": "1.0.0",
-  "description": "A Discord bot that replies to Spotify links with playable Spotify player previews",
+  "description": "A Discord bot that replies to Spotify links with Spotify cards and playable previews",
   "type": "module",
   "main": "src/index.js",
   "scripts": {

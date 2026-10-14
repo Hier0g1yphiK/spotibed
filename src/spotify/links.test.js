@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractSpotifyLinks, toEmbedUrl, buildEmbedMessage, DEFAULT_NOTE, MAX_LINKS_PER_MESSAGE } from './links.js';
+import { extractSpotifyLinks, toEmbedUrl } from './links.js';
 
 const TRACK = 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT';
 
@@ -58,20 +58,5 @@ describe('toEmbedUrl', () => {
 
   it('prefixes the canonical link with a custom URL', () => {
     expect(toEmbedUrl(link, 'https://playsoju.netlify.app/?s=')).toBe(`https://playsoju.netlify.app/?s=${TRACK}`);
-  });
-});
-
-describe('buildEmbedMessage', () => {
-  it('prepends the note and puts one link per line', () => {
-    const links = extractSpotifyLinks(`${TRACK} https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3`);
-    expect(buildEmbedMessage(links, { note: DEFAULT_NOTE, customUrl: '' })).toBe(
-      `${DEFAULT_NOTE}${TRACK}\nhttps://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3`,
-    );
-  });
-
-  it('limits the number of links', () => {
-    const content = Array.from({ length: 8 }, (_, i) => `https://open.spotify.com/track/AAAAAAAAAAAAAAAAAAAAA${i}`).join(' ');
-    const message = buildEmbedMessage(extractSpotifyLinks(content), { note: '', customUrl: '' });
-    expect(message.split('\n')).toHaveLength(MAX_LINKS_PER_MESSAGE);
   });
 });

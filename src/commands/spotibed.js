@@ -158,7 +158,7 @@ export async function execute(interaction, { settingsStore }) {
       const url = interaction.options.getString('url').trim();
       if (['reset', 'none'].includes(url.toLowerCase())) {
         settingsStore.set(guildId, 'customUrl', '');
-        content = '✅ Using the default Spotify link.';
+        content = '✅ Using the default Spotify card and preview.';
       } else if (!/^https?:\/\/\S+$/i.test(url)) {
         content = 'The custom URL must start with `http://` or `https://`.';
       } else {
@@ -191,6 +191,6 @@ export function buildSettingsEmbed(settings) {
       { name: 'Auto-embed', value: settings.enabled ? 'Enabled' : 'Disabled', inline: true },
       { name: 'Delete original', value: settings.deleteOriginal ? 'Yes' : 'No', inline: true },
       { name: 'Note', value: noteLabel },
-      { name: 'Custom URL', value: settings.customUrl ? `\`${settings.customUrl}\`` : '*(default Spotify link)*' },
+      { name: 'Custom URL', value: settings.customUrl ? `\`${settings.customUrl}\`` : '*(default: Spotify card + preview)*' },
     );
 }

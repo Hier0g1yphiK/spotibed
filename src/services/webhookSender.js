@@ -9,6 +9,11 @@ import { logger } from '../utils/logger.js';
 
 const WEBHOOK_NAME = 'Spotibed';
 
+/** Accepts either plain text or a message options object. */
+function toPayload(payload) {
+  return typeof payload === 'string' ? { content: payload } : payload;
+}
+
 export class WebhookSender {
   /**
    * @param {import('discord.js').Client} client
@@ -47,19 +52,19 @@ export class WebhookSender {
   }
 
   /**
-   * Sends content into a channel as the given member/user.
+   * Sends a message into a channel as the given member/user.
    * Throws if the webhook can't be used (e.g. missing Manage Webhooks).
    *
    * @param {import('discord.js').GuildTextBasedChannel} channel
-   * @param {string} content
+   * @param {string|{ content?: string, embeds?: object[], files?: object[] }} payload
    * @param {{ member?: import('discord.js').GuildMember|null, user: import('discord.js').User }} as
    */
-  async sendAs(channel, content, { member, user }) {
+  async sendAs(channel, payload, { member, user }) {
     const webhook = await this.getWebhook(channel);
 
     try {
       await webhook.send({
-        content,
+        ...toPayload(payload),
         username: member?.displayName ?? user.displayName ?? user.username,
         avatarURL: member?.displayAvatarURL() ?? user.displayAvatarURL(),
         threadId: channel.isThread() ? channel.id : undefined,
@@ -77,9 +82,9 @@ export class WebhookSender {
    *
    * @returns {Promise<boolean>} True if sent via webhook, false if the fallback was used
    */
-  async sendAsOrFallback(channel, content, as) {
+  async sendAsOrFallback(channel, payload, as) {
     try {
-      await this.sendAs(channel, content, as);
+      await this.sendAs(channel, payload, as);
       return true;
     } catch (error) {
       logger.warn({
@@ -88,7 +93,7 @@ export class WebhookSender {
         message: 'Falling back to a normal message — bot may lack Manage Webhooks permission',
         error: error.message,
       });
-      await channel.send({ content, allowedMentions: { parse: [] } });
+      await channel.send({ ...toPayload(payload), allowedMentions: { parse: [] } });
       return false;
     }
   }

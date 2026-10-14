@@ -16,6 +16,8 @@ describe('registerSpotifyLinkListener', () => {
     registerSpotifyLinkListener(client, {
       settingsStore: { get: vi.fn(() => settings) },
       webhookSender,
+      // No metadata available, so the reply falls back to the plain link
+      metadataService: { getMetadata: vi.fn().mockResolvedValue(null), downloadPreview: vi.fn() },
     });
 
     message = {
@@ -35,7 +37,11 @@ describe('registerSpotifyLinkListener', () => {
     await handler(message);
     expect(webhookSender.sendAsOrFallback).toHaveBeenCalledWith(
       message.channel,
-      `${DEFAULT_SETTINGS.note}https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT`,
+      {
+        content: `${DEFAULT_SETTINGS.note}https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT`,
+        embeds: [],
+        files: [],
+      },
       { member: message.member, user: message.author },
     );
     expect(message.delete).not.toHaveBeenCalled();
