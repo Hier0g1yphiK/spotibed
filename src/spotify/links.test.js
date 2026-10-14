@@ -52,8 +52,8 @@ describe('extractSpotifyLinks', () => {
 describe('toEmbedUrl', () => {
   const [link] = extractSpotifyLinks(TRACK);
 
-  it('builds the Spotify embed URL by default', () => {
-    expect(toEmbedUrl(link)).toBe('https://open.spotify.com/embed/track/4cOdK2wGLETKBW3PvgPWqT');
+  it('posts the clean canonical link by default', () => {
+    expect(toEmbedUrl(link)).toBe(TRACK);
   });
 
   it('prefixes the canonical link with a custom URL', () => {
@@ -65,7 +65,7 @@ describe('buildEmbedMessage', () => {
   it('prepends the note and puts one link per line', () => {
     const links = extractSpotifyLinks(`${TRACK} https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3`);
     expect(buildEmbedMessage(links, { note: DEFAULT_NOTE, customUrl: '' })).toBe(
-      `${DEFAULT_NOTE}https://open.spotify.com/embed/track/4cOdK2wGLETKBW3PvgPWqT\nhttps://open.spotify.com/embed/album/1DFixLWuPkv3KT3TnV35m3`,
+      `${DEFAULT_NOTE}${TRACK}\nhttps://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3`,
     );
   });
 

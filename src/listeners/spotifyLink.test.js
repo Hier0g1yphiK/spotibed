@@ -27,17 +27,25 @@ describe('registerSpotifyLinkListener', () => {
       member: {},
       content: 'https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT?si=x',
       delete: vi.fn().mockResolvedValue(undefined),
+      suppressEmbeds: vi.fn().mockResolvedValue(undefined),
     };
   });
 
-  it('reposts the embed link as the author', async () => {
+  it('reposts the clean link as the author', async () => {
     await handler(message);
     expect(webhookSender.sendAsOrFallback).toHaveBeenCalledWith(
       message.channel,
-      `${DEFAULT_SETTINGS.note}https://open.spotify.com/embed/track/4cOdK2wGLETKBW3PvgPWqT`,
+      `${DEFAULT_SETTINGS.note}https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT`,
       { member: message.member, user: message.author },
     );
     expect(message.delete).not.toHaveBeenCalled();
+    expect(message.suppressEmbeds).toHaveBeenCalledWith(true);
+  });
+
+  it('still reposts if suppressing the original preview fails', async () => {
+    message.suppressEmbeds.mockRejectedValue(new Error('Missing Permissions'));
+    await expect(handler(message)).resolves.toBeUndefined();
+    expect(webhookSender.sendAsOrFallback).toHaveBeenCalled();
   });
 
   it('does nothing when disabled', async () => {

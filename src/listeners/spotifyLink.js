@@ -1,7 +1,7 @@
 /**
  * Spotify Link Listener
  * When enabled for a guild, detects Spotify links in messages and reposts them
- * as embed-player links (as the original author, via webhook). Optionally
+ * as clean links Discord shows as its Spotify player (as the original author, via webhook). Optionally
  * deletes the original message afterwards.
  */
 
@@ -49,12 +49,23 @@ export function registerSpotifyLinkListener(client, { settingsStore, webhookSend
     if (settings.deleteOriginal && sentViaWebhook) {
       try {
         await message.delete();
+        return;
       } catch {
         logger.warn({
           event: 'spotify_link_listener',
           message: 'Failed to delete original message — bot may lack Manage Messages permission',
         });
       }
+    }
+
+    // Hide the original's preview so the player doesn't show twice
+    try {
+      await message.suppressEmbeds(true);
+    } catch {
+      logger.warn({
+        event: 'spotify_link_listener',
+        message: 'Failed to suppress embeds — bot may lack Manage Messages permission',
+      });
     }
   });
 }

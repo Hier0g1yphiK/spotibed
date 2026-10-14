@@ -43,8 +43,10 @@ export function extractSpotifyLinks(content) {
 
 /**
  * Builds the URL to post for a Spotify link.
- * With no custom URL this is Spotify's embed player; otherwise the canonical
- * link is appended to the custom URL (e.g. https://playsoju.netlify.app/?s=).
+ * With no custom URL this is the canonical link, which Discord unfurls into
+ * its Spotify player card (open.spotify.com/embed/ pages have no preview tags,
+ * so Discord shows them as bare links). With a custom URL the canonical link
+ * is appended to it (e.g. https://playsoju.netlify.app/?s=).
  *
  * @param {{ type: string, id: string, url: string }} link
  * @param {string} [customUrl]
@@ -54,7 +56,7 @@ export function toEmbedUrl(link, customUrl = '') {
   if (customUrl) {
     return `${customUrl}${link.url}`;
   }
-  return `https://open.spotify.com/embed/${link.type}/${link.id}`;
+  return link.url;
 }
 
 /**

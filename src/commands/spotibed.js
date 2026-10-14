@@ -29,7 +29,7 @@ export const command = {
     },
     {
       name: 'enable',
-      description: 'Automatically reply to Spotify links with an embed preview',
+      description: 'Automatically reply to Spotify links with a playable preview',
       type: 1, // SUB_COMMAND
       options: [],
     },
@@ -119,7 +119,7 @@ export async function execute(interaction, { settingsStore }) {
 
     case 'enable':
       settingsStore.set(guildId, 'enabled', true);
-      content = '✅ Spotify links will now get an embed preview.';
+      content = '✅ Spotify links will now get a playable preview.';
       break;
 
     case 'disable':
@@ -158,7 +158,7 @@ export async function execute(interaction, { settingsStore }) {
       const url = interaction.options.getString('url').trim();
       if (['reset', 'none'].includes(url.toLowerCase())) {
         settingsStore.set(guildId, 'customUrl', '');
-        content = '✅ Using the default Spotify embed player.';
+        content = '✅ Using the default Spotify link.';
       } else if (!/^https?:\/\/\S+$/i.test(url)) {
         content = 'The custom URL must start with `http://` or `https://`.';
       } else {
@@ -191,6 +191,6 @@ export function buildSettingsEmbed(settings) {
       { name: 'Auto-embed', value: settings.enabled ? 'Enabled' : 'Disabled', inline: true },
       { name: 'Delete original', value: settings.deleteOriginal ? 'Yes' : 'No', inline: true },
       { name: 'Note', value: noteLabel },
-      { name: 'Custom URL', value: settings.customUrl ? `\`${settings.customUrl}\`` : '*(default Spotify embed)*' },
+      { name: 'Custom URL', value: settings.customUrl ? `\`${settings.customUrl}\`` : '*(default Spotify link)*' },
     );
 }

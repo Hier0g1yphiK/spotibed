@@ -1,6 +1,6 @@
 /**
  * /spotifyembed command handler
- * Converts a Spotify link into an embed-player link on demand.
+ * Converts a Spotify link into a clean link Discord shows as a player.
  */
 
 import { MessageFlags } from 'discord.js';
@@ -8,7 +8,7 @@ import { extractSpotifyLinks, toEmbedUrl } from '../spotify/links.js';
 
 export const command = {
   name: 'spotifyembed',
-  description: 'Post a playable embed preview for a Spotify link',
+  description: 'Post a playable Spotify player preview for a link',
   options: [
     {
       name: 'link',
